@@ -9,6 +9,7 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import no.householdBackend.household.CreateHousehold
 import no.householdBackend.household.GetHousehold
+import no.householdBackend.household.PatchHousehold
 import no.householdBackend.user.CreateUser
 import no.householdBackend.user.GetUser
 import org.flywaydb.core.Flyway
@@ -34,6 +35,7 @@ class HouseholdApplication : Application<HouseholdConfig>() {
         environment.jersey().register(GetUser(jdbi))
         environment.jersey().register(CreateUser(jdbi))
         environment.jersey().register(CreateHousehold(jdbi))
+        environment.jersey().register(PatchHousehold(jdbi))
     }
 
     override fun initialize(bootstrap: Bootstrap<HouseholdConfig>) {
