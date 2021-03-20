@@ -1,0 +1,9 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 9056
+  adminConnectors:
+    - type: http
+      port: 9057
+
+s: "Hei"

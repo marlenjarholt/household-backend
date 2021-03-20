@@ -1,14 +1,63 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'java'
+    id 'application'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
 }
 
-group 'org.example'
+group 'no.householdBackend'
 version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
+shadowJar {
+    mergeServiceFiles()
+}
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    def dropwizardVersion = '2.0.11'
+    def junitVersion = '5.6.2'
+
+    implementation group: 'com.auth0', name: 'java-jwt', version: '3.12.0'
+    implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.4.21'
+    implementation group: 'io.dropwizard', name: 'dropwizard-core', version: dropwizardVersion
+    implementation group: 'io.dropwizard', name: 'dropwizard-auth', version: dropwizardVersion
+    implementation group: 'io.dropwizard', name: 'dropwizard-forms', version: dropwizardVersion
+    implementation group: 'io.dropwizard', name: 'dropwizard-jdbi3', version: dropwizardVersion
+    implementation group: 'io.dropwizard', name: 'dropwizard-assets', version: dropwizardVersion
+    implementation group: 'io.dropwizard', name: 'dropwizard-testing', version: dropwizardVersion
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.5'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.11.1'
+    implementation group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.3'
+    implementation group: 'com.michael-bull.kotlin-result', name: 'kotlin-result', version: '1.1.8'
+    implementation group: 'org.flywaydb', name: 'flyway-core', version: '6.5.1'
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.941'
+    implementation group: 'com.j256.simplemagic', name: 'simplemagic', version: '1.16'
+    implementation group: 'com.smoketurner', name: 'dropwizard-swagger', version: '2.0.0-1'
+    implementation group: 'io.swagger.core.v3', name: 'swagger-core', version: '2.1.6'
+    implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.1.6'
+
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
+}
+mainClassName = 'no.householdBackend.HouseholdApplicationKt'
+sourceCompatibility = 1.8
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    args = ['server', 'settings.yml']
 }
