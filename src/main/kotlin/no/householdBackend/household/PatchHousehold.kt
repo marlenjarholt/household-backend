@@ -80,8 +80,6 @@ class PatchHousehold(val jdbi: Jdbi) {
                     DBErrorPatchUserToHousehold(it)
                 }
             }
-        }.andThen {
-            Ok(Unit)
         }
 
 
