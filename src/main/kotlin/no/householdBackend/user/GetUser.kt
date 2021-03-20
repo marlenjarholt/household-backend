@@ -6,7 +6,6 @@ import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.runCatching
-import no.householdBackend.household.Household
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
 import java.lang.Exception
@@ -49,7 +48,7 @@ class GetUser(val jdbi: Jdbi) {
                     .collect(Collectors.toList()).firstOrNull()
             }
         }.mapError {
-            DBError(it)
+            DBErrorGetUser(it)
         }.andThen {
             if(it != null){
                 Ok(it)
@@ -62,7 +61,7 @@ class GetUser(val jdbi: Jdbi) {
             },
             failure = {
                 when(it) {
-                    is DBError -> {
+                    is DBErrorGetUser -> {
                         logger.error("Database error: ", it.error)
                         Response.serverError().build()
                     }
@@ -73,6 +72,6 @@ class GetUser(val jdbi: Jdbi) {
 
 }
 
-private sealed class GetUserError
-private class DBError(val error: Throwable) : GetUserError()
+internal sealed class GetUserError
+private class DBErrorGetUser(val error: Throwable) : GetUserError()
 private object NotFound: GetUserError()
