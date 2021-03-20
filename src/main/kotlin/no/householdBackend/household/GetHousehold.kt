@@ -27,7 +27,7 @@ class GetHousehold(private val jdbi: Jdbi) {
     @GET
     fun getHousehold(@PathParam("id") id: UUID): Response =
         runCatching {
-            jdbi.withHandle<List<Household>, Exception> {
+            jdbi.withHandle<Household?, Exception> {
                 it.createQuery(
                     """
                     |SELECT *
@@ -43,13 +43,13 @@ class GetHousehold(private val jdbi: Jdbi) {
                         )
                     }
                     .collect(Collectors.toList())
+                    .firstOrNull()
             }
         }.mapError {
             DBError(it)
         }.andThen {
-            val first = it.firstOrNull()
-            if (first != null) {
-                Ok(first)
+            if (it != null) {
+                Ok(it)
             } else {
                 Err(NotFound)
             }
