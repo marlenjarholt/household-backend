@@ -7,6 +7,7 @@ import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.jdbi3.JdbiFactory
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
+import no.householdBackend.household.CreateHousehold
 import no.householdBackend.household.GetHousehold
 import no.householdBackend.user.CreateUser
 import no.householdBackend.user.GetUser
@@ -32,6 +33,7 @@ class HouseholdApplication : Application<HouseholdConfig>() {
         environment.jersey().register(GetHousehold(jdbi))
         environment.jersey().register(GetUser(jdbi))
         environment.jersey().register(CreateUser(jdbi))
+        environment.jersey().register(CreateHousehold(jdbi))
     }
 
     override fun initialize(bootstrap: Bootstrap<HouseholdConfig>) {
