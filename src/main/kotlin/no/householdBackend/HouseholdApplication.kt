@@ -13,6 +13,7 @@ import no.householdBackend.auth.HouseholdAuthenticator
 import no.householdBackend.auth.RequireAuthByDefaultDynamicFeature
 import no.householdBackend.household.CreateHousehold
 import no.householdBackend.household.GetHousehold
+import no.householdBackend.household.PatchHousehold
 import no.householdBackend.user.AuthenticateUser
 import no.householdBackend.user.CreateUser
 import no.householdBackend.user.GetUser
@@ -42,6 +43,7 @@ class HouseholdApplication : Application<HouseholdConfig>() {
         environment.jersey().register(GetUser(jdbi))
         environment.jersey().register(CreateUser(jdbi))
         environment.jersey().register(CreateHousehold(jdbi))
+        environment.jersey().register(PatchHousehold(jdbi))
         environment.jersey().register(AuthenticateUser(jdbi, configuration.jwtSecret))
 
         environment.jersey().register(
