@@ -7,6 +7,7 @@ import io.dropwizard.db.DataSourceFactory
 import io.dropwizard.jdbi3.JdbiFactory
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
+import no.householdBackend.household.CreateHousehold
 import no.householdBackend.household.GetHousehold
 import org.flywaydb.core.Flyway
 
@@ -28,6 +29,7 @@ class HouseholdApplication : Application<HouseholdConfig>() {
             .migrate()
 
         environment.jersey().register(GetHousehold(jdbi))
+        environment.jersey().register(CreateHousehold(jdbi))
     }
 
     override fun initialize(bootstrap: Bootstrap<HouseholdConfig>) {
