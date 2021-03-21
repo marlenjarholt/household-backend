@@ -86,5 +86,9 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 
+.idea/sonarlint
 .idea/codeStyles/Project.xml
 .idea/codeStyles/codeStyleConfig.xml
+.idea/dataSources.xml
+.idea/misc.xml
+.idea/modules/household-backend.test.iml
