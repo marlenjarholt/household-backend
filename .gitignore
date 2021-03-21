@@ -87,7 +87,7 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 .idea/sonarlint
-
 .idea/codeStyles/Project.xml
 .idea/codeStyles/codeStyleConfig.xml
 .idea/dataSources.xml
+.idea/misc.xml
