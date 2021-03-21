@@ -10,8 +10,9 @@ import com.github.michaelbull.result.runCatching
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
 import java.lang.Exception
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 import java.util.stream.Collectors
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -108,7 +109,11 @@ private fun createHousehold(databaseRows: List<DatabaseRow>): Result<Household, 
                         id = it.groceryId,
                         name = it.groceryName,
                         amount = it.groceryAmount,
-                        unit = it.groceryUnit,
+                        unit = if (GroceryUnit.fromString(it.groceryUnit) != null) {
+                            GroceryUnit.fromString(it.groceryUnit)!!
+                        } else {
+                            throw IllegalArgumentException("Unable to parse grocery unit")
+                        },
                         expirationDate = it.groceryExpirationDate
                     )
                 }
