@@ -32,14 +32,14 @@ class CreateUser(val jdbi: Jdbi){
     @POST
     @NoAuthRequired
     fun createUser(user: UserRequest, @Context uriInfo: UriInfo) : Response{
-        val salt = secureRandom()
-        val hashedPassword = hash(user.password + salt)
-        val id = UUID.randomUUID()
-        if(! EmailValidator.getInstance(true).isValid(user.mail)){
-            logger.error("User error: email already exists")
+        if(!EmailValidator.getInstance(true).isValid(user.mail)){
+            logger.error("User error: invalid email")
             return Response.status(BAD_REQUEST.statusCode, "Invalid email").build()
         }
         return runCatching {
+            val salt = secureRandom()
+            val hashedPassword = hash(user.password + salt)
+            val id = UUID.randomUUID()
             jdbi.withHandle<Unit, Exception>{
                 it.createUpdate(
                     """
@@ -54,6 +54,7 @@ class CreateUser(val jdbi: Jdbi){
                     .bind("salt", salt)
                     .execute()
             }
+            id
         }.mapError {
             if(it is UnableToExecuteStatementException && it.message?.contains("ERROR: duplicate key value violates unique constraint \"users_mail_key\"") == true){
                 MailError
@@ -62,7 +63,7 @@ class CreateUser(val jdbi: Jdbi){
             }
         }.mapBoth(
            success = {
-               val uri = uriInfo.absolutePathBuilder.path(id.toString()).build()
+               val uri = uriInfo.absolutePathBuilder.path(it.toString()).build()
                Response.created(uri).build()
            },
             failure = {
