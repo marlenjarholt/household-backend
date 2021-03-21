@@ -5,6 +5,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
+import com.github.michaelbull.result.runCatching
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
 import java.lang.Exception
@@ -23,7 +24,7 @@ class PatchGrocery(private val jdbi: Jdbi){
 
     @PATCH
     fun patchGrocery(groceryPatch: GroceryPatch): Response =
-        com.github.michaelbull.result.runCatching {
+        runCatching{
             jdbi.withHandle<Int, Exception> {
                 it.createUpdate(
                     """
@@ -40,8 +41,8 @@ class PatchGrocery(private val jdbi: Jdbi){
             }
         }.mapError {
             DBErrorPatchGroceryError(it)
-        }.andThen {
-            if(it == 0){
+        }.andThen {rowsAffected ->
+            if(rowsAffected == 0){
                 Err(GroceryNotFound)
             }else {
                 Ok(Unit)
