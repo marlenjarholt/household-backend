@@ -1,11 +1,11 @@
 package no.householdBackend.grocery
 
-import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.runCatching
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.*
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
@@ -24,31 +24,32 @@ class CreateGrocery(private val jdbi: Jdbi) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @POST
-    fun createGrocery(createGroceryRequest: CreateGroceryRequest, @Context uriInfo:UriInfo): Response =
+    fun createGrocery(createGroceryRequest: CreateGroceryRequest, @Context uriInfo: UriInfo): Response =
         runCatching {
-           val id = UUID.randomUUID()
-           jdbi.inTransaction<Unit, Exception> {
-               it.createUpdate(
-                   """
+            val id = UUID.randomUUID()
+            jdbi.inTransaction<Unit, Exception> {
+                it.createUpdate(
+                    """
                       |INSERT INTO  groceries
-                      |VALUES(:id, :name, :amount, :unit);
+                      |VALUES(:id, :name, :amount, :unit, :expirationDate);
                       |
                       |INSERT INTO refrigerator_grocery_relation
                       |VALUES(:refrigeratorId, :id);
                    """.trimMargin()
-               )
-                   .bind("id", id)
-                   .bind("name", createGroceryRequest.name)
-                   .bind("amount", createGroceryRequest.amount)
-                   .bind("unit", createGroceryRequest.unit)
-                   .bind("refrigeratorId", createGroceryRequest.refrigeratorId)
-                   .execute()
-           }
+                )
+                    .bind("id", id)
+                    .bind("name", createGroceryRequest.name)
+                    .bind("amount", createGroceryRequest.amount)
+                    .bind("unit", createGroceryRequest.unit)
+                    .bind("refrigeratorId", createGroceryRequest.refrigeratorId)
+                    .bind("expirationDate", createGroceryRequest.expirationDate)
+                    .execute()
+            }
             id
         }.mapError {
-            if (it.message?.contains("is not present in table \"refrigerators\"") == true){
+            if (it.message?.contains("is not present in table \"refrigerators\"") == true) {
                 RefrigeratorNotFound
-            }else {
+            } else {
                 DBErrorCreateGrocery(it)
             }
         }.mapBoth(
@@ -57,7 +58,7 @@ class CreateGrocery(private val jdbi: Jdbi) {
                 Response.created(uri).build()
             },
             failure = {
-                when(it){
+                when (it) {
                     is DBErrorCreateGrocery -> {
                         logger.error("Database error: ", it.error)
                         Response.serverError().build()
@@ -67,7 +68,6 @@ class CreateGrocery(private val jdbi: Jdbi) {
                         Response.status(NOT_FOUND.statusCode, "Refrigerator not found").build()
                     }
                 }
-
             }
         )
 }
@@ -76,9 +76,10 @@ data class CreateGroceryRequest(
     val refrigeratorId: UUID,
     val name: String,
     val amount: Number,
-    val unit: String
+    val unit: String,
+    val expirationDate: LocalDate?
 )
 
 private sealed class CreateGroceryError
 private class DBErrorCreateGrocery(val error: Throwable) : CreateGroceryError()
-private object  RefrigeratorNotFound: CreateGroceryError()
+private object RefrigeratorNotFound : CreateGroceryError()

@@ -1,5 +1,6 @@
 package no.householdBackend.household
 
+import java.time.LocalDate
 import java.util.UUID
 
 data class Household(
@@ -17,5 +18,6 @@ data class Grocery(
     val id: UUID,
     val name: String,
     val amount: Number,
-    val unit: String
+    val unit: String,
+    val expirationDate: LocalDate?
 )

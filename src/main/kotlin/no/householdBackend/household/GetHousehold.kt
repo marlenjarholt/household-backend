@@ -10,6 +10,7 @@ import com.github.michaelbull.result.runCatching
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
 import java.lang.Exception
+import java.time.LocalDate
 import java.util.*
 import java.util.stream.Collectors
 import javax.ws.rs.GET
@@ -40,7 +41,8 @@ class GetHousehold(private val jdbi: Jdbi) {
                     |   groceries.id AS groceryId,
                     |   groceries.name AS groceryName,
                     |   groceries.amount AS groceryAmount,
-                    |   groceries.unit AS groceryUnit
+                    |   groceries.unit AS groceryUnit,
+                    |   groceries.expiration_date AS groceryExpirationDate
                     |FROM households
                     |JOIN refrigerators ON refrigerators.id = households.refrigerator_id
                     |JOIN refrigerator_grocery_relation ON refrigerator_grocery_relation.refrigerator_id = refrigerators.id
@@ -59,7 +61,8 @@ class GetHousehold(private val jdbi: Jdbi) {
                             groceryId = UUID.fromString(rs.getString("groceryId")),
                             groceryName = rs.getString("groceryName"),
                             groceryAmount = rs.getDouble("groceryAmount"),
-                            groceryUnit = rs.getString("groceryUnit")
+                            groceryUnit = rs.getString("groceryUnit"),
+                            groceryExpirationDate = rs.getDate("groceryExpirationDate")?.toLocalDate()
                         )
                     }
                     .collect(Collectors.toList())
@@ -105,7 +108,8 @@ private fun createHousehold(databaseRows: List<DatabaseRow>): Result<Household, 
                         id = it.groceryId,
                         name = it.groceryName,
                         amount = it.groceryAmount,
-                        unit = it.groceryUnit
+                        unit = it.groceryUnit,
+                        expirationDate = it.groceryExpirationDate
                     )
                 }
             )
@@ -123,7 +127,8 @@ data class DatabaseRow(
     val groceryId: UUID,
     val groceryName: String,
     val groceryAmount: Double,
-    val groceryUnit: String
+    val groceryUnit: String,
+    val groceryExpirationDate: LocalDate?
 )
 
 private sealed class GetHouseholdError
