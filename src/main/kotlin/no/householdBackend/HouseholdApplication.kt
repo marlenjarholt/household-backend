@@ -11,6 +11,8 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import no.householdBackend.auth.HouseholdAuthenticator
 import no.householdBackend.auth.RequireAuthByDefaultDynamicFeature
+import no.householdBackend.grocery.CreateGrocery
+import no.householdBackend.grocery.PatchGrocery
 import no.householdBackend.household.CreateHousehold
 import no.householdBackend.household.GetHousehold
 import no.householdBackend.household.PatchHousehold
@@ -45,6 +47,8 @@ class HouseholdApplication : Application<HouseholdConfig>() {
         environment.jersey().register(CreateHousehold(jdbi))
         environment.jersey().register(PatchHousehold(jdbi))
         environment.jersey().register(AuthenticateUser(jdbi, configuration.jwtSecret))
+        environment.jersey().register(PatchGrocery(jdbi))
+        environment.jersey().register(CreateGrocery(jdbi))
 
         environment.jersey().register(
             RequireAuthByDefaultDynamicFeature(
