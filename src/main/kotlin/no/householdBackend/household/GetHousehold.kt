@@ -7,6 +7,7 @@ import com.github.michaelbull.result.andThen
 import com.github.michaelbull.result.mapBoth
 import com.github.michaelbull.result.mapError
 import com.github.michaelbull.result.runCatching
+import io.dropwizard.auth.Auth
 import org.jdbi.v3.core.Jdbi
 import org.slf4j.LoggerFactory
 import java.lang.Exception
@@ -21,14 +22,15 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.NOT_FOUND
+import no.householdBackend.user.AuthUser
 
 @Produces(MediaType.APPLICATION_JSON)
-@Path("/household/{id}")
+@Path("/household")
 class GetHousehold(private val jdbi: Jdbi) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @GET
-    fun getHousehold(@PathParam("id") id: UUID): Response =
+    fun getHousehold(@Auth user: AuthUser): Response =
         runCatching {
             jdbi.withHandle<List<DatabaseRow>, Exception> {
                 it.createQuery(
@@ -43,15 +45,17 @@ class GetHousehold(private val jdbi: Jdbi) {
                     |   groceries.name AS groceryName,
                     |   groceries.amount AS groceryAmount,
                     |   groceries.unit AS groceryUnit,
-                    |   groceries.expiration_date AS groceryExpirationDate
+                    |   groceries.expiration_date AS groceryExpirationDate,
+                    |   user_household_relation.user_id AS userId
                     |FROM households
                     |JOIN refrigerators ON refrigerators.id = households.refrigerator_id
                     |JOIN refrigerator_grocery_relation ON refrigerator_grocery_relation.refrigerator_id = refrigerators.id
                     |JOIN groceries ON groceries.id = refrigerator_grocery_relation.grocery_id
-                    |WHERE households.id = :id;
+                    |JOIN user_household_relation ON user_household_relation.household_id = households.id
+                    |WHERE user_household_relation.user_id = :id;
                     """.trimMargin()
                 )
-                    .bind("id", id)
+                    .bind("id", user.id)
                     .map { rs, _, _ ->
                         DatabaseRow(
                             householdId = UUID.fromString(rs.getString("householdId")),
@@ -63,20 +67,22 @@ class GetHousehold(private val jdbi: Jdbi) {
                             groceryName = rs.getString("groceryName"),
                             groceryAmount = rs.getDouble("groceryAmount"),
                             groceryUnit = rs.getString("groceryUnit"),
-                            groceryExpirationDate = rs.getDate("groceryExpirationDate")?.toLocalDate()
+                            groceryExpirationDate = rs.getDate("groceryExpirationDate")?.toLocalDate(),
+                            userId = UUID.fromString(rs.getString("userId"))
                         )
                     }
                     .collect(Collectors.toList())
             }
-        }.mapError {
-            DBError(it)
-        }.andThen {
-            if (it.isEmpty()) {
-                Err(NotFound)
-            } else {
-                Ok(it)
+        }
+            .mapError { DBError(it) }
+            .andThen {
+                if (it.isEmpty()) {
+                    Err(NotFound)
+                } else {
+                    Ok(it)
+                }
             }
-        }.andThen(::createHousehold)
+            .andThen(::createHousehold)
             .mapBoth(
                 success = {
                     Response.ok(it).build()
@@ -133,7 +139,8 @@ data class DatabaseRow(
     val groceryName: String,
     val groceryAmount: Double,
     val groceryUnit: String,
-    val groceryExpirationDate: LocalDate?
+    val groceryExpirationDate: LocalDate?,
+    val userId: UUID
 )
 
 private sealed class GetHouseholdError
